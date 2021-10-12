@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:yummy_chat/widgets/chat/message.dart';
+import 'package:yummy_chat/widgets/chat/new_message.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -19,12 +20,12 @@ class _ChatScreenState extends State<ChatScreen> {
     getCurrentUser();
   }
 
-  void getCurrentUser(){
+  void getCurrentUser() {
     try {
       final user = _auth.currentUser!;
       loggedInUser = user;
       print(loggedInUser!.email);
-    } catch(e){
+    } catch (e) {
       print(e);
     }
   }
@@ -32,25 +33,60 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index)=> Container(
-          padding: EdgeInsets.all(8.0),
-          child: Text('This works'),
-        ),
+      appBar: AppBar(
+        title: Text('Flutter chatting'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+            },
+            icon: Icon(
+              Icons.exit_to_app_sharp,
+              color: Colors.white,
+            ),
+          ),
+          // DropdownButton(
+          //   dropdownColor: Colors.black,
+          //   items: [
+          //     DropdownMenuItem(
+          //       child: Container(
+          //         child: Row(
+          //           children: [
+          //             Icon(
+          //               Icons.exit_to_app,
+          //               color: Colors.grey,
+          //             ),
+          //             SizedBox(
+          //               width: 8,
+          //             ),
+          //             Text('Logout')
+          //           ],
+          //         ),
+          //       ),
+          //       value: 'logout',
+          //     ),
+          //   ],
+          //   icon: Icon(
+          //     Icons.more_vert,
+          //     color: Colors.white,
+          //   ),
+          //   onChanged: (verify) {
+          //     if (verify == 'logout') {
+          //       FirebaseAuth.instance.signOut();
+          //     }
+          //   },
+          // ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: (){
-          FirebaseFirestore.instance.collection('chats/piUsQ6lLjgD9P2GdQUvz/message')
-              .snapshots()
-              .listen((event) {
-                //print(event.docs[0]['text']);
-            event.docs.forEach((element) {
-              print(element['text']);
-            });
-          });
-        },
+      body: Container(
+        child: Column(
+          children: [
+            Expanded(
+              child: Messages(),
+            ),
+            NewMessage(),
+          ],
+        ),
       ),
     );
   }

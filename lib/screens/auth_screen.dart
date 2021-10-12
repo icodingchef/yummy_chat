@@ -6,35 +6,52 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yummy_chat/screens/chat_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:yummy_chat/widgets/picker/user_image_picker.dart';
+import 'dart:io' as io;
+import 'package:firebase_storage/firebase_storage.dart';
 
 class LoginSignupScreen extends StatefulWidget {
-
   @override
   _LoginSignupScreenState createState() => _LoginSignupScreenState();
 }
 
 class _LoginSignupScreenState extends State<LoginSignupScreen> {
-
   final _auth = FirebaseAuth.instance;
 
   final formKey = GlobalKey<FormState>();
   bool isSignupScreen = true;
-  bool isLoginScreen = true;
-  bool isMale = true;
-  bool isLogin = true;
+  // bool isLoginScreen = true;
+  // bool isMale = true;
+  // bool isLogin = true;
   bool showSpinner = false;
   String userName = '';
   String userEmail = '';
   String userPassword = '';
+  io.File? userImageFile;
+  //io.File? image;
 
-  void _trySubmit(){
+  void _pickedImage(io.File? image) {
+    userImageFile = image;
+  }
+
+  void _trySubmit() {
     final isValid = formKey.currentState!.validate();
     FocusScope.of(context).unfocus();
-    if(isValid){
+
+    if (userImageFile == null && isSignupScreen) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please pick an image'),
+          backgroundColor: Theme.of(context).errorColor,
+        ),
+      );
+      return;
+    }
+
+    if (isValid) {
       formKey.currentState!.save();
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +60,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
         child: GestureDetector(
-          onTap: (){
+          onTap: () {
             FocusScope.of(context).unfocus();
           },
           child: Stack(
@@ -55,11 +72,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 child: Container(
                   height: 300,
                   decoration: BoxDecoration(
-                      image: DecorationImage(
-                          image: AssetImage('images/red2_3.jpg'),
-                          fit: BoxFit.fill)),
+                    image: DecorationImage(
+                        image: AssetImage('images/red2_3.jpg'),
+                        fit: BoxFit.fill),
+                  ),
                   child: Container(
-                    padding: EdgeInsets.only(top: 90, left: 20),
+                    padding: EdgeInsets.only(top: 60, left: 20),
                     //color: Color(0xFFF8D405).withOpacity(.45),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,8 +93,9 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               ),
                               children: [
                                 TextSpan(
-                                  text:
-                                      isSignupScreen ? ' to Yummy chat!' : ' back',
+                                  text: isSignupScreen
+                                      ? ' to Yummy chat!'
+                                      : ' back',
                                   style: TextStyle(
                                     fontSize: 25.0,
                                     fontWeight: FontWeight.bold,
@@ -92,7 +111,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           isSignupScreen
                               ? 'Signup to continue'
                               : 'Signin to continue',
-                          style: TextStyle(letterSpacing: 1, color: Colors.white),
+                          style:
+                              TextStyle(letterSpacing: 1, color: Colors.white),
                         ),
                       ],
                     ),
@@ -102,24 +122,25 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               AnimatedPositioned(
                 duration: Duration(milliseconds: 500),
                 curve: Curves.easeIn,
-                top: 180,
+                top: 140,
                 child: SingleChildScrollView(
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 500),
                     curve: Curves.easeIn,
                     padding: EdgeInsets.all(20),
-                    height: isSignupScreen ? 280 : 250,
+                    height: isSignupScreen ? 370 : 250,
                     width: MediaQuery.of(context).size.width - 40,
                     margin: EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 15,
-                              spreadRadius: 5)
-                        ]),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 15,
+                            spreadRadius: 5),
+                      ],
+                    ),
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
@@ -182,6 +203,9 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               )
                             ],
                           ),
+                          // SizedBox(
+                          //   height: 20,
+                          // ),
                           if (isSignupScreen)
                             Container(
                               margin: EdgeInsets.only(top: 20),
@@ -189,18 +213,32 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 key: formKey,
                                 child: Column(
                                   children: [
+                                    // Column(
+                                    //   mainAxisAlignment: MainAxisAlignment.center,
+                                    //   children: [
+                                    //     CircleAvatar(
+                                    //       radius: 30,
+                                    //     ),
+                                    //     TextButton.icon(
+                                    //       onPressed: (){},
+                                    //       icon: Icon(Icons.image),
+                                    //       label: Text('Add image'),
+                                    //     ),
+                                    //   ],
+                                    // ),
                                     TextFormField(
                                       key: ValueKey(1),
                                       onChanged: (value) {
                                         userName = value;
                                       },
-                                      validator: (value){
-                                        if(value!.isEmpty || value.length < 4){
-                                          return 'Please enter at least 4 charactors.';
+                                      validator: (value) {
+                                        if (value!.isEmpty ||
+                                            value.length < 4) {
+                                          return 'Please enter at least 4 characters.';
                                         }
                                         return null;
                                       },
-                                      onSaved: (value){
+                                      onSaved: (value) {
                                         userName = value!;
                                       },
                                       decoration: InputDecoration(
@@ -209,15 +247,15 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             color: Palette.iconColor,
                                           ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Palette.textColor1),
+                                            borderSide: BorderSide(
+                                                color: Palette.textColor1),
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(35.0),
                                             ),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Palette.textColor1),
+                                            borderSide: BorderSide(
+                                                color: Palette.textColor1),
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(35.0),
                                             ),
@@ -233,20 +271,20 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                     ),
                                     TextFormField(
                                       key: ValueKey(2),
-                                      validator: (value){
-                                        if(value!.isEmpty || !value.contains('@')){
+                                      validator: (value) {
+                                        if (value!.isEmpty ||
+                                            !value.contains('@')) {
                                           return 'Please enter a valid email address';
                                         }
                                         return null;
                                       },
-                                      onSaved: (value){
+                                      onSaved: (value) {
                                         userEmail = value!;
                                       },
                                       onChanged: (value) {
                                         userEmail = value;
                                         print(userEmail);
                                       },
-
                                       keyboardType: TextInputType.emailAddress,
                                       decoration: InputDecoration(
                                           prefixIcon: Icon(
@@ -254,15 +292,15 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             color: Palette.iconColor,
                                           ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Palette.textColor1),
+                                            borderSide: BorderSide(
+                                                color: Palette.textColor1),
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(35.0),
                                             ),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Palette.textColor1),
+                                            borderSide: BorderSide(
+                                                color: Palette.textColor1),
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(35.0),
                                             ),
@@ -282,13 +320,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                         userPassword = value;
                                         print(userPassword);
                                       },
-                                      validator: (value){
-                                        if(value!.isEmpty || value.length < 6){
+                                      validator: (value) {
+                                        if (value!.isEmpty ||
+                                            value.length < 6) {
                                           return 'Please enter at least 6 characters.';
                                         }
                                         return null;
                                       },
-                                      onSaved: (value){
+                                      onSaved: (value) {
                                         userPassword = value!;
                                       },
                                       obscureText: true,
@@ -298,15 +337,15 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                           color: Palette.iconColor,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: Palette.textColor1),
+                                          borderSide: BorderSide(
+                                              color: Palette.textColor1),
                                           borderRadius: BorderRadius.all(
                                             Radius.circular(35.0),
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: Palette.textColor1),
+                                          borderSide: BorderSide(
+                                              color: Palette.textColor1),
                                           borderRadius: BorderRadius.all(
                                             Radius.circular(35.0),
                                           ),
@@ -314,12 +353,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                         contentPadding: EdgeInsets.all(10),
                                         hintText: 'password',
                                         hintStyle: TextStyle(
-                                            fontSize: 14, color: Palette.textColor1),
+                                            fontSize: 14,
+                                            color: Palette.textColor1),
                                       ),
                                     ),
                                     SizedBox(
                                       height: 12.0,
                                     ),
+                                    UserImagePicker(_pickedImage),
                                   ],
                                 ),
                               ),
@@ -335,13 +376,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                       onChanged: (value) {
                                         userEmail = value;
                                       },
-                                      validator: (value){
-                                        if(value!.isEmpty || !value.contains('@')){
+                                      validator: (value) {
+                                        if (value!.isEmpty ||
+                                            !value.contains('@')) {
                                           return 'Please enter a valid email address';
                                         }
                                         return null;
                                       },
-                                      onSaved: (value){
+                                      onSaved: (value) {
                                         userEmail = value!;
                                       },
                                       key: ValueKey(4),
@@ -352,15 +394,15 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                             color: Palette.iconColor,
                                           ),
                                           enabledBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Palette.textColor1),
+                                            borderSide: BorderSide(
+                                                color: Palette.textColor1),
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(35.0),
                                             ),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Palette.textColor1),
+                                            borderSide: BorderSide(
+                                                color: Palette.textColor1),
                                             borderRadius: BorderRadius.all(
                                               Radius.circular(35.0),
                                             ),
@@ -378,13 +420,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                       onChanged: (value) {
                                         userPassword = value;
                                       },
-                                      validator: (value){
-                                        if(value!.isEmpty || value.length < 6){
+                                      validator: (value) {
+                                        if (value!.isEmpty ||
+                                            value.length < 6) {
                                           return 'Please enter at least 6 characters.';
                                         }
                                         return null;
                                       },
-                                      onSaved: (value){
+                                      onSaved: (value) {
                                         userPassword = value!;
                                       },
                                       key: ValueKey(5),
@@ -395,15 +438,15 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                           color: Palette.iconColor,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: Palette.textColor1),
+                                          borderSide: BorderSide(
+                                              color: Palette.textColor1),
                                           borderRadius: BorderRadius.all(
                                             Radius.circular(35.0),
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: Palette.textColor1),
+                                          borderSide: BorderSide(
+                                              color: Palette.textColor1),
                                           borderRadius: BorderRadius.all(
                                             Radius.circular(35.0),
                                           ),
@@ -411,7 +454,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                         contentPadding: EdgeInsets.all(10),
                                         hintText: 'password',
                                         hintStyle: TextStyle(
-                                            fontSize: 14, color: Palette.textColor1),
+                                            fontSize: 14,
+                                            color: Palette.textColor1),
                                       ),
                                     ),
                                   ],
@@ -427,7 +471,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
               AnimatedPositioned(
                 duration: Duration(milliseconds: 500),
                 curve: Curves.easeIn,
-                top: isSignupScreen ? 430 : 390,
+                top: isSignupScreen ? 475 : 350,
                 right: 0,
                 left: 0,
                 child: Center(
@@ -439,40 +483,54 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(50)),
                     child: GestureDetector(
-                      onTap: () async{
+                      onTap: () async {
                         setState(() {
                           showSpinner = true;
                         });
                         if (isSignupScreen) {
                           _trySubmit();
                           try {
-                          final newUser = await _auth.createUserWithEmailAndPassword(
-                                email: userEmail.trim(), password: userPassword.trim());
+                            final newUser =
+                                await _auth.createUserWithEmailAndPassword(
+                              email: userEmail.trim(),
+                              password: userPassword.trim(),
+                            );
 
-                          await FirebaseFirestore.instance.collection('user').doc(newUser.user!.uid).set(
+                            final ref = FirebaseStorage.instance
+                                .ref()
+                                .child('user_image')
+                                .child(newUser.user!.uid + '.jpg');
+                            await ref.putFile(userImageFile!);
+                            final url = await ref.getDownloadURL();
+
+                            await FirebaseFirestore.instance
+                                .collection('user')
+                                .doc(newUser.user!.uid)
+                                .set(
                               {
                                 'username': userName,
-                                'email': userEmail
+                                'email': userEmail,
+                                'image_url' : url,
+                              },
+                            );
 
-                              });
+                            if (newUser.user != null)
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return ChatScreen();
+                              }));
 
-                          if(newUser.user != null)
-                          Navigator.push(context, MaterialPageRoute(builder: (context){
-                            return ChatScreen();
-                          }));
+                            setState(() {
+                              showSpinner = false;
+                            });
 
-                          setState(() {
-                            showSpinner =false;
-                          });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('등록되었습니다.'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-
-                          }on PlatformException catch (e){
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('등록되었습니다.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          } on PlatformException catch (e) {
                             var message = 'An error occurred';
                             if (e.message != null) {
                               message = e.message!;
@@ -484,35 +542,31 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 backgroundColor: Colors.blue,
                               ),
                             );
-                          } catch(e){
+                          } catch (e) {
                             print(e);
 
                             setState(() {
-                              showSpinner =false;
+                              showSpinner = false;
                             });
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Please check your email and password'),
-                                backgroundColor: Colors.blue,
-                              ),
-                            );
-
                           }
-                        } else {
+                        } else if (!isSignupScreen) {
                           setState(() {
                             showSpinner = true;
                           });
                           _trySubmit();
                           try {
-                            final newUser = await _auth.signInWithEmailAndPassword(
-                                email: userEmail.trim(), password: userPassword.trim());
+                            final newUser =
+                                await _auth.signInWithEmailAndPassword(
+                                    email: userEmail.trim(),
+                                    password: userPassword.trim());
 
-                            if(newUser.user != null)
-                            Navigator.push(context, MaterialPageRoute(
-                                  builder: (context) {
-                                    return ChatScreen();
-                                  }));
+                            // if (newUser.user != null)
+                            //   Navigator.push(context,
+                            //       MaterialPageRoute(builder: (context) {
+                            //     return ChatScreen();
+                            //   }));
+
+                            //ChatScreen이 두 번 호출되었던 이유. 코드 삭제해줌
 
                             setState(() {
                               showSpinner = false;
@@ -522,10 +576,10 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                               SnackBar(
                                 content: Text('로그인 되었습니다.'),
                                 backgroundColor: Colors.red,
+                                duration: Duration(milliseconds: 700),
                               ),
                             );
-
-                          } on PlatformException catch (e){
+                          } on PlatformException catch (e) {
                             var message = 'An error occurred';
                             if (e.message != null) {
                               message = e.message!;
@@ -537,19 +591,12 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 backgroundColor: Colors.blue,
                               ),
                             );
-                          } catch(e){
+                          } catch (e) {
                             print(e);
 
                             setState(() {
-                              showSpinner =false;
+                              showSpinner = false;
                             });
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Please check your email and password'),
-                                backgroundColor: Colors.blue,
-                              ),
-                            );
                           }
                         }
                       },
@@ -580,7 +627,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                 ),
               ),
               Positioned(
-                top: MediaQuery.of(context).size.height - 125,
+                top: MediaQuery.of(context).size.height - 100,
                 right: 0,
                 left: 0,
                 child: Column(
